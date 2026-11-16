@@ -55,4 +55,4 @@ Charts: `outputs/class_distribution.png`, `outputs/top_features.png`, `outputs/c
 - This is an educational project and **not** for real medical diagnosis.
 
 ## 👤 Author
-**Your Name** — [LinkedIn](https://linkedin.com/in/your-profile) | [GitHub](https://github.com/your-username)
+**Your Name** — [LinkedIn]www.linkedin.com/in/waqas73 | [GitHub]https://github.com/Waqaskhan23810
