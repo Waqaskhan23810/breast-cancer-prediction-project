@@ -118,45 +118,64 @@ st.dataframe(perf_df, width="stretch")
 st.pyplot(render_confusion_matrix(cm))
 
 st.subheader("Predict for a New Patient")
-st.caption("Enter the tumor measurements below to get a prediction.")
+st.caption("Use the dataset average or enter your own tumor measurements for a custom diagnosis prediction.")
 
-with st.sidebar:
-    st.header("Input Features")
-    values = {}
+with st.form("prediction_form", clear_on_submit=False):
+    prediction_mode = st.selectbox(
+        "Choose input method",
+        ["Use dataset average values", "Enter custom values manually"],
+        index=1,
+    )
+
+    custom_values = {}
     for name in feature_names:
-        default_value = float(X[name].mean())
-        values[name] = st.number_input(
+        col_values = X[name]
+        default_value = float(col_values.mean())
+        min_value = float(col_values.min())
+        max_value = max(float(col_values.max()) * 1.2, float(col_values.max()) + 10.0)
+
+        if prediction_mode == "Use dataset average values":
+            current_value = default_value
+            min_value = 0.0
+        else:
+            current_value = default_value
+            min_value = 0.0
+
+        custom_values[name] = st.number_input(
             f"{name}",
-            min_value=0.0,
-            max_value=100.0,
-            value=default_value,
+            min_value=min_value,
+            max_value=max_value,
+            value=current_value,
             step=0.01,
             format="%.2f",
+            key=f"input_{name}",
         )
 
-input_df = pd.DataFrame([values], columns=feature_names)
+    submitted = st.form_submit_button("Predict Tumor Type")
 
-prediction = model.predict(input_df)[0]
-probabilities = model.predict_proba(input_df)[0]
-label = "Benign" if prediction == 1 else "Malignant"
-confidence = max(probabilities)
+if submitted:
+    input_df = pd.DataFrame([custom_values], columns=feature_names)
+    prediction = model.predict(input_df)[0]
+    probabilities = model.predict_proba(input_df)[0]
+    label = "Benign" if prediction == 1 else "Malignant"
+    confidence = max(probabilities)
 
-st.markdown(f"### Prediction: {label}")
-st.markdown(f"**Confidence:** {confidence * 100:.2f}%")
+    st.markdown(f"### Prediction: {label}")
+    st.markdown(f"**Confidence:** {confidence * 100:.2f}%")
 
-if prediction == 1:
-    st.success("The tumor is likely benign.")
-else:
-    st.error("The tumor is likely malignant.")
+    if prediction == 1:
+        st.success("The tumor is likely benign.")
+    else:
+        st.error("The tumor is likely malignant.")
 
-st.write("Probability breakdown:")
-prob_df = pd.DataFrame(
-    {
-        "Class": ["Malignant", "Benign"],
-        "Probability": probabilities,
-    }
-)
-st.dataframe(prob_df, width="stretch")
+    st.write("Probability breakdown:")
+    prob_df = pd.DataFrame(
+        {
+            "Class": ["Malignant", "Benign"],
+            "Probability": probabilities,
+        }
+    )
+    st.dataframe(prob_df, width="stretch")
 
 st.subheader("Dataset Preview")
 st.dataframe(df.head(), width="stretch")
